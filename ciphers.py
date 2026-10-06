@@ -1,19 +1,11 @@
-import logging
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.backends import default_backend
 from cryptography.fernet import Fernet
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-# 1. Шифр Цезаря
+
 def caesar_encrypt(text: str, shift: int) -> str:
-    """Шифрование текста методом Цезаря."""
     if not text:
-        logging.warning("Цезарь: Передан пустой текст для шифрования!")
         return ""
-    logging.info("Цезарь: Выполнение шифрования со сдвигом %d", shift)
     encrypted_text = ""
     for char in text:
         if char.isalpha():
@@ -23,21 +15,13 @@ def caesar_encrypt(text: str, shift: int) -> str:
         else:
             encrypted_text += char
     return encrypted_text
+
 def caesar_decrypt(encrypted_text: str, shift: int) -> str:
-    """Расшифровка текста, зашифрованного методом Цезаря."""
-    logging.info("Цезарь: Выполнение расшифровки со сдвигом %d", shift)
     return caesar_encrypt(encrypted_text, -shift)
-# 2. Шифр Виженера
+
 def vigenere_encrypt(text: str, key: str) -> str:
-    """Шифрование текста методом Виженера."""
     if not text:
-        logging.warning("Виженер: Передан пустой текст для шифрования!")
         return ""
-    # ПРОВЕРКА:
-    if not key:
-        logging.error("Виженер: Ключ шифрования не может быть пустым.")
-        raise ValueError("Ключ шифрования не может быть пустым")
-    logging.info("Виженер: Выполнение шифрования")
     encrypted_text = ""
     key_index = 0
     key = key.lower()
@@ -51,12 +35,8 @@ def vigenere_encrypt(text: str, key: str) -> str:
         else:
             encrypted_text += char
     return encrypted_text
+
 def vigenere_decrypt(encrypted_text: str, key: str) -> str:
-    """Расшифровка текста, зашифрованного методом Виженера."""
-    if not key:
-        logging.error("Виженер: Ключ для расшифровки не может быть пустым.")
-        raise ValueError("Ключ шифрования не может быть пустым")
-    logging.info("Виженер: Выполнение расшифровки")
     decrypted_text = ""
     key_index = 0
     key = key.lower()
@@ -70,24 +50,19 @@ def vigenere_decrypt(encrypted_text: str, key: str) -> str:
         else:
             decrypted_text += char
     return decrypted_text
-# 3. Асимметричное шифрование
+
 def generate_rsa_keys():
-    """Генерация приватного и публичного ключей RSA."""
-    logging.info("RSA: Генерация пары ключей...")
     private_key = rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
         backend=default_backend()
     )
     public_key = private_key.public_key()
-    logging.info("RSA: Ключи успешно сгенерированы.")
     return private_key, public_key
+
 def rsa_encrypt(message: bytes, public_key) -> bytes:
-    """Шифрование сообщения с использованием публичного ключа RSA."""
     if not message:
-        logging.warning("RSA: Пустое сообщение для шифрования!")
         return b""
-    logging.info("RSA: Шифрование сообщения открытым ключом.")
     return public_key.encrypt(
         message,
         padding.OAEP(
@@ -96,9 +71,8 @@ def rsa_encrypt(message: bytes, public_key) -> bytes:
             label=None
         )
     )
+
 def rsa_decrypt(encrypted_message: bytes, private_key) -> bytes:
-    """Расшифровка сообщения с использованием приватного ключа RSA."""
-    logging.info("RSA: Расшифровка сообщения закрытым ключом.")
     try:
         return private_key.decrypt(
             encrypted_message,
@@ -109,41 +83,20 @@ def rsa_decrypt(encrypted_message: bytes, private_key) -> bytes:
             )
         )
     except Exception as e:
-        logging.error("RSA: Ошибка расшифровки! Детали: %s", e)
         raise ValueError("Ошибка расшифровки RSA") from e
-# 4. Симметричное шифрование файлов 
+
 def encrypt_file(input_filename: str, output_filename: str, key: bytes) -> None:
-    """Шифрование содержимого файла с помощью Fernet."""
-    logging.info("Fernet: Попытка шифрования файла %s -> %s", input_filename, output_filename)
     cipher_suite = Fernet(key)
-    try:
-        with open(input_filename, 'rb') as f:
-            data = f.read()
-        encrypted_data = cipher_suite.encrypt(data)
-        with open(output_filename, 'wb') as f:
-            f.write(encrypted_data)
-        logging.info("Fernet: Файл успешно зашифрован.")
-    except FileNotFoundError:
-        logging.error("Fernet: Файл %s не найден!", input_filename)
-        raise
-    except Exception as e:
-        logging.error("Fernet: Произошла ошибка при шифровании файла: %s", e)
-        raise
+    with open(input_filename, 'rb') as f:
+        data = f.read()
+    encrypted_data = cipher_suite.encrypt(data)
+    with open(output_filename, 'wb') as f:
+        f.write(encrypted_data)
+
 def decrypt_file(input_filename: str, output_filename: str, key: bytes) -> None:
-    """Расшифровка файла с помощью Fernet."""
-    logging.info("Fernet: Попытка расшифровки файла %s -> %s", input_filename, output_filename)
     cipher_suite = Fernet(key)
-    
-    try:
-        with open(input_filename, 'rb') as f:
-            encrypted_data = f.read()
-        decrypted_data = cipher_suite.decrypt(encrypted_data)
-        with open(output_filename, 'wb') as f:
-            f.write(decrypted_data)
-        logging.info("Fernet: Файл успешно расшифрован.")
-    except FileNotFoundError:
-        logging.error("Fernet: Файл %s не найден!", input_filename)
-        raise
-    except Exception as e:
-        logging.error("Fernet: Ошибка при расшифровке: %s", e)
-        raise
+    with open(input_filename, 'rb') as f:
+        encrypted_data = f.read()
+    decrypted_data = cipher_suite.decrypt(encrypted_data)
+    with open(output_filename, 'wb') as f:
+        f.write(decrypted_data)
