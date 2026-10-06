@@ -1,5 +1,3 @@
-"""Модуль с реализацией алгоритмов шифрования (Полная исправленная версия)."""
-
 import logging
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
@@ -11,12 +9,10 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-# 1. Шифр Цезаря
 def caesar_encrypt(text: str, shift: int) -> str:
     if not text:
         logging.warning("Цезарь: Передан пустой текст для шифрования!")
         return ""
-
     logging.info("Цезарь: Выполнение шифрования со сдвигом %d", shift)
     encrypted_text = ""
     for char in text:
@@ -32,7 +28,6 @@ def caesar_decrypt(encrypted_text: str, shift: int) -> str:
     logging.info("Цезарь: Выполнение расшифровки со сдвигом %d", shift)
     return caesar_encrypt(encrypted_text, -shift)
 
-# 2. Шифр Виженера
 def vigenere_encrypt(text: str, key: str) -> str:
     if not text:
         logging.warning("Виженер: Передан пустой текст для шифрования!")
@@ -46,7 +41,6 @@ def vigenere_encrypt(text: str, key: str) -> str:
     encrypted_text = ""
     key_index = 0
     key = key.lower()
-
     for char in text:
         if char.isalpha():
             shift = ord(key[key_index % len(key)]) - ord('a')
@@ -62,12 +56,10 @@ def vigenere_decrypt(encrypted_text: str, key: str) -> str:
     if not key:
         logging.error("Виженер: Ключ для расшифровки не может быть пустым.")
         raise ValueError("Ключ шифрования не может быть пустым")
-
     logging.info("Виженер: Выполнение расшифровки")
     decrypted_text = ""
     key_index = 0
     key = key.lower()
-
     for char in encrypted_text:
         if char.isalpha():
             shift = ord(key[key_index % len(key)]) - ord('a')
@@ -79,7 +71,6 @@ def vigenere_decrypt(encrypted_text: str, key: str) -> str:
             decrypted_text += char
     return decrypted_text
 
-# 3. Асимметричное шифрование (RSA)
 def generate_rsa_keys():
     logging.info("RSA: Генерация пары ключей...")
     private_key = rsa.generate_private_key(
@@ -120,7 +111,6 @@ def rsa_decrypt(encrypted_message: bytes, private_key) -> bytes:
         logging.error("RSA: Ошибка расшифровки! Детали: %s", e)
         raise ValueError("Ошибка расшифровки RSA") from e
 
-# 4. Симметричное шифрование файлов (Fernet)
 def encrypt_file(input_filename: str, output_filename: str, key: bytes) -> None:
     logging.info("Fernet: Попытка шифрования файла %s -> %s", input_filename, output_filename)
     cipher_suite = Fernet(key)
